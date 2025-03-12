@@ -5,6 +5,34 @@ from pandas import DataFrame, read_csv, read_json, to_datetime
 
 
 def get_public_holidays(public_holidays_url: str, year: str) -> DataFrame:
+    
+    try:
+
+        response = requests.get(f"{public_holidays_url}/{year}/BR")
+
+        response.raise_for_status()  # Lanza un error si el request falla
+
+        data = response.json()
+        df = DataFrame(data)
+
+    # Eliminar columnas innecesarias
+        df.drop(columns=['counties', 'types'], inplace=True, errors='ignore')
+
+    # Convertir el campo 'date' a formato datetime
+        df['date'] = to_datetime(df['date'])
+
+        return df
+
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"Error en la solicitud: {e}")
+    except ValueError as e:
+        raise RuntimeError(f"Error al procesar los datos: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Error inesperado: {e}")
+
+    
+    
+    
     """Get the public holidays for the given year for Brazil.
 
     Args:
